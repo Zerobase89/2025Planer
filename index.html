@@ -72,23 +72,24 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .mmore{font-size:9px;color:var(--muted);margin-top:2px;}
 
 /* ── EVENTS ── */
-.ev{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 7px 18px 7px;font-size:10px;font-weight:600;z-index:10;overflow:hidden;line-height:1.3;border:1px solid rgba(255,255,255,0.07);transition:box-shadow .1s,opacity .1s;cursor:grab;touch-action:none;}
-.ev.ev-small{padding:3px 6px;}
-.ev.ev-small .ev-actions{position:absolute;top:-2px;right:2px;bottom:auto;left:auto;justify-content:flex-end;background:rgba(0,0,0,0.55);}
-.ev.ev-small.active-ev .ev-actions{top:-2px;bottom:auto;}
-.ev.ev-small .ev-title{padding-right:14px;}
-.ev:active{cursor:grabbing;}
+.ev{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 7px 18px 7px;font-size:10px;font-weight:600;z-index:10;overflow:hidden;line-height:1.3;border:1px solid rgba(255,255,255,0.07);transition:box-shadow .1s,opacity .1s;cursor:default;touch-action:none;}
+.ev.active-ev{cursor:grab;}
+.ev.active-ev:active{cursor:grabbing;}
 .ev.dragging{opacity:.3;}
 .ev.done{opacity:.4;filter:saturate(0.25);}
 .ev-title{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ev-time{font-family:'DM Mono',monospace;font-size:8px;opacity:.65;margin-top:1px;}
-.ev-actions{position:absolute;bottom:2px;left:2px;right:2px;display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .15s,bottom .15s;background:rgba(0,0,0,0.35);border-radius:4px;padding:2px;z-index:20;}
+.ev-actions{position:absolute;left:2px;right:2px;display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .15s;background:rgba(0,0,0,0.4);border-radius:4px;padding:2px;z-index:20;}
+.ev-actions.ev-actions-top{top:2px;bottom:auto;}
+.ev-actions.ev-actions-bottom{bottom:2px;top:auto;}
 .ev:hover .ev-actions{opacity:1;}
-.ev.active-ev .ev-actions{opacity:1;bottom:14px;}
-.ev-body{padding-bottom:18px;}
+.ev.active-ev .ev-actions{opacity:1;}
+.ev.active-ev .ev-actions.ev-actions-top{top:14px;}
+.ev.active-ev .ev-actions.ev-actions-bottom{bottom:14px;}
+.ev.ev-small .ev-actions{padding:1px 2px;}
+.ev.ev-small .ev-title{padding-right:0;}
 .ev-btn{background:rgba(255,255,255,0.12);border:none;color:inherit;width:16px;height:14px;border-radius:3px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ev-btn:hover{background:rgba(255,255,255,0.25);}
-.ev-btn:hover{background:rgba(0,0,0,0.8);}
+.ev-btn:hover{background:rgba(255,255,255,0.3);}
 .ev-resize{position:absolute;bottom:0;left:0;right:0;height:6px;cursor:ns-resize;background:rgba(255,255,255,0.1);border-radius:0 0 6px 6px;opacity:0;transition:opacity .15s;}
 .ev:hover .ev-resize{opacity:1;}
 .ev-badge{position:absolute;bottom:3px;right:4px;font-family:'DM Mono',monospace;font-size:7px;background:rgba(0,0,0,0.5);border-radius:3px;padding:1px 3px;opacity:.8;}
@@ -254,7 +255,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
 /* ── ACTIVE EVENT ── */
 .ev.active-ev{box-shadow:0 0 0 2px var(--work);z-index:20;}
-.ev-handle{position:absolute;left:0;right:0;height:14px;background:rgba(200,255,0,0.35);display:none;cursor:ns-resize;z-index:15;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;}
+.ev-handle{position:absolute;left:0;right:0;height:14px;background:rgba(200,255,0,0.35);display:none;cursor:ns-resize;z-index:15;border-radius:6px 6px 0 0;align-items:center;justify-content:center;}
 .ev-handle-top{top:0;border-radius:6px 6px 0 0;}
 .ev-handle-bot{bottom:0;border-radius:0 0 6px 6px;top:auto;}
 .ev.active-ev .ev-handle{display:flex;}
@@ -721,6 +722,7 @@ function renderMonth(){
 /* ── WEEK ── */
 let drag={active:false},rsz={active:false};
 function renderWeek(){
+  allDayCols={};
   const cal=document.getElementById('cal');cal.innerHTML='';
   const today=new Date();
   const corner=document.createElement('div');corner.className='dh corner';cal.appendChild(corner);
@@ -739,6 +741,7 @@ function renderWeek(){
 
 /* ── DAY ── */
 function renderDay(){
+  allDayCols={};
   const cal=document.getElementById('day-cal');cal.innerHTML='';
   const tc=document.createElement('div');tc.className='tc';
   for(let h=SH;h<EH;h++){const tl=document.createElement('div');tl.className='tl';tl.textContent=h+':00';tc.appendChild(tl);}
@@ -747,8 +750,11 @@ function renderDay(){
 }
 
 /* ── DAY COL ── */
+let allDayCols={}; // dayIdx -> {col, dkey}
 function makeDayCol(dayIdx,dkey){
   const col=document.createElement('div');col.className='dc'+(dayIdx===0||dayIdx===6?' we':'');col.style.position='relative';
+  col.dataset.dayIdx=dayIdx;col.dataset.dkey=dkey;
+  allDayCols[dayIdx]={col,dkey};
   for(let h=SH;h<EH;h++){
     const hs=document.createElement('div');hs.className='hs';
     // Single click on empty area = quick add
@@ -765,8 +771,6 @@ function makeDayCol(dayIdx,dkey){
     col.appendChild(hs);
   }
   const ghost=document.createElement('div');ghost.className='ghost';ghost.id='g_'+dayIdx+'_'+dkey;col.appendChild(ghost);
-  col.addEventListener('pointermove',e=>onColMove(e,col,dayIdx,dkey));
-  col.addEventListener('pointerup',e=>onColUp(e,col,dayIdx,dkey));
 
   // Render regular events
   events.forEach(ev=>{
@@ -849,7 +853,7 @@ function makeEventEl(ev,dayIdx,dkey,col){
   });
 
   el.innerHTML=
-    '<div class="ev-actions">'+
+    '<div class="ev-actions ev-actions-bottom">'+
       '<button class="ev-btn" onclick="startTimer(\''+ev.id+'\',\''+dkey+'\',event)">⏱</button>'+
       '<button class="ev-btn" onclick="toggleDone(\''+ev.id+'\',\''+dkey+'\',event)">'+(isDone?'↩':'✓')+'</button>'+
       '<button class="ev-btn" onclick="openModal(\''+ev.id+'\',null,null,null,event)">✎</button>'+
@@ -862,20 +866,30 @@ function makeEventEl(ev,dayIdx,dkey,col){
   el.appendChild(handleTop);
   el.appendChild(handleBot);
 
-  // Double click to activate
+  // Track where the pointer is (top half / bottom half) to position the action bar near the click
+  el.addEventListener('pointermove',e=>{
+    if(drag.active||topRsz.active||rsz.active)return;
+    const r=el.getBoundingClientRect();
+    const relY=e.clientY-r.top;
+    const actions=el.querySelector('.ev-actions');
+    if(!actions)return;
+    if(relY<r.height/2){
+      actions.classList.add('ev-actions-top');actions.classList.remove('ev-actions-bottom');
+    }else{
+      actions.classList.add('ev-actions-bottom');actions.classList.remove('ev-actions-top');
+    }
+  });
+
+  // Double click to activate (only active events can be dragged or resized)
   el.addEventListener('dblclick',e=>{
     e.stopPropagation();
-    document.querySelectorAll('.ev.active-ev').forEach(x=>x.classList.remove('active-ev'));
+    document.querySelectorAll('.ev.active-ev').forEach(x=>{if(x!==el)x.classList.remove('active-ev');});
     el.classList.toggle('active-ev');
   });
 
-  // Drag only when active
+  // Drag only when active (handled by document-level move/up so it can cross day columns)
   el.addEventListener('pointerdown',e=>{
-    if(!el.classList.contains('active-ev'))return;
-    if(e.target.classList.contains('ev-btn')||e.target.classList.contains('ev-handle')||e.target.classList.contains('ev-handle-icon'))return;
-    e.preventDefault();
-    drag={active:true,evId:ev.id,fromDay:dayIdx,fromDkey:dkey,offsetY:e.clientY-el.getBoundingClientRect().top,el};
-    el.setPointerCapture(e.pointerId);el.classList.add('dragging');
+    onEvDown(e,ev,dayIdx,dkey,el);
   });
 
   return el;
@@ -948,9 +962,70 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')hideQuickAdd();});
 
 
 /* ── DRAG ── */
-function onEvDown(e,ev,dayIdx,dkey,el){if(e.target.classList.contains('ev-btn')||e.target.classList.contains('ev-resize'))return;e.preventDefault();drag={active:true,evId:ev.id,fromDay:dayIdx,fromDkey:dkey,offsetY:e.clientY-el.getBoundingClientRect().top,el};el.setPointerCapture(e.pointerId);el.classList.add('dragging');}
-function onColMove(e,col,dayIdx,dkey){if(!drag.active)return;e.preventDefault();const snapped=snap(e.clientY-col.getBoundingClientRect().top-drag.offsetY);const ev=events.find(x=>x.id===drag.evId);if(!ev)return;document.querySelectorAll('.ghost').forEach(g=>g.style.display='none');const g=document.getElementById('g_'+dayIdx+'_'+dkey);if(g){g.style.display='block';g.style.top=Math.max(0,snapped)+'px';g.style.height=((ev.eh*60+ev.em)-(ev.sh*60+ev.sm))/60*PH+'px';}}
-function onColUp(e,col,dayIdx,dkey){if(!drag.active)return;document.querySelectorAll('.ghost').forEach(g=>g.style.display='none');const snapped=snap(e.clientY-col.getBoundingClientRect().top-drag.offsetY);const t=toTime(Math.max(0,snapped));const ev=events.find(x=>x.id===drag.evId);if(ev){const dur=(ev.eh*60+ev.em)-(ev.sh*60+ev.sm);const endMins=t.h*60+t.m+dur;if(ev.days.length>1&&dayIdx!==drag.fromDay){ev.days=ev.days.filter(x=>x!==drag.fromDay);events.push({...ev,id:uid(),days:[dayIdx],sh:t.h,sm:t.m,eh:Math.floor(endMins/60),em:endMins%60,done:{}});}else{if(dayIdx!==drag.fromDay)ev.days=ev.days.map(x=>x===drag.fromDay?dayIdx:x);ev.sh=t.h;ev.sm=t.m;ev.eh=Math.floor(endMins/60);ev.em=endMins%60;}saveToFirebase();}if(drag.el)drag.el.classList.remove('dragging');drag={active:false};render();}
+function onEvDown(e,ev,dayIdx,dkey,el){
+  if(!el.classList.contains('active-ev'))return; // only drag when active
+  if(e.target.classList.contains('ev-btn')||e.target.classList.contains('ev-handle')||e.target.classList.contains('ev-handle-icon'))return;
+  e.preventDefault();
+  drag={active:true,evId:ev.id,fromDay:dayIdx,fromDkey:dkey,offsetY:e.clientY-el.getBoundingClientRect().top,el};
+  el.setPointerCapture(e.pointerId);el.classList.add('dragging');
+}
+
+function findColAtX(clientX){
+  for(const idx in allDayCols){
+    const {col}=allDayCols[idx];
+    const r=col.getBoundingClientRect();
+    if(clientX>=r.left&&clientX<r.right)return {dayIdx:+idx,col,dkey:allDayCols[idx].dkey};
+  }
+  return null;
+}
+
+function onDocMove(e){
+  if(!drag.active)return;
+  e.preventDefault();
+  const hit=findColAtX(e.clientX);
+  if(!hit)return;
+  const colRect=hit.col.getBoundingClientRect();
+  const snapped=snap(e.clientY-colRect.top-drag.offsetY);
+  const ev=events.find(x=>x.id===drag.evId);if(!ev)return;
+  document.querySelectorAll('.ghost').forEach(g=>g.style.display='none');
+  const g=document.getElementById('g_'+hit.dayIdx+'_'+hit.dkey);
+  if(g){
+    g.style.display='block';
+    g.style.top=Math.max(0,snapped)+'px';
+    g.style.height=((ev.eh*60+ev.em)-(ev.sh*60+ev.sm))/60*PH+'px';
+  }
+  drag.curDay=hit.dayIdx;drag.curDkey=hit.dkey;
+}
+
+function onDocUp(e){
+  if(!drag.active)return;
+  document.querySelectorAll('.ghost').forEach(g=>g.style.display='none');
+  const hit=findColAtX(e.clientX)||{dayIdx:drag.fromDay,col:allDayCols[drag.fromDay]&&allDayCols[drag.fromDay].col,dkey:drag.fromDkey};
+  if(hit.col){
+    const colRect=hit.col.getBoundingClientRect();
+    const snapped=snap(e.clientY-colRect.top-drag.offsetY);
+    const t=toTime(Math.max(0,snapped));
+    const ev=events.find(x=>x.id===drag.evId);
+    if(ev){
+      const dur=(ev.eh*60+ev.em)-(ev.sh*60+ev.sm);
+      const endMins=t.h*60+t.m+dur;
+      const dayIdx=hit.dayIdx;
+      if(ev.days.length>1&&dayIdx!==drag.fromDay){
+        ev.days=ev.days.filter(x=>x!==drag.fromDay);
+        events.push({...ev,id:uid(),days:[dayIdx],sh:t.h,sm:t.m,eh:Math.floor(endMins/60),em:endMins%60,done:{}});
+      }else{
+        if(dayIdx!==drag.fromDay)ev.days=ev.days.map(x=>x===drag.fromDay?dayIdx:x);
+        ev.sh=t.h;ev.sm=t.m;ev.eh=Math.floor(endMins/60);ev.em=endMins%60;
+      }
+      saveToFirebase();
+    }
+  }
+  if(drag.el)drag.el.classList.remove('dragging');
+  drag={active:false};
+  render();
+}
+document.addEventListener('pointermove',onDocMove);
+document.addEventListener('pointerup',onDocUp);
 function onRszMove(e){if(!rsz.active)return;rsz.el.style.height=Math.max(PH*0.25,rsz.startH+(e.clientY-rsz.startY))+'px';}
 function onRszUp(e){if(!rsz.active)return;const nh=Math.max(PH*0.25,rsz.startH+(e.clientY-rsz.startY));const endMins=Math.round(((rsz.topPx+nh)/PH*60+SH*60)/15)*15;const ev=events.find(x=>x.id===rsz.evId);if(ev){ev.eh=Math.floor(endMins/60);ev.em=endMins%60;if(ev.em>=60){ev.eh++;ev.em=0;}saveToFirebase();render();}rsz.el.removeEventListener('pointermove',onRszMove);rsz.el.removeEventListener('pointerup',onRszUp);rsz={active:false};}
 
