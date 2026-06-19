@@ -72,15 +72,22 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .mmore{font-size:9px;color:var(--muted);margin-top:2px;}
 
 /* ── EVENTS ── */
-.ev{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 7px;font-size:10px;font-weight:600;z-index:10;overflow:hidden;line-height:1.35;border:1px solid rgba(255,255,255,0.07);transition:box-shadow .1s,opacity .1s;cursor:grab;touch-action:none;}
+.ev{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 7px 18px 7px;font-size:10px;font-weight:600;z-index:10;overflow:hidden;line-height:1.3;border:1px solid rgba(255,255,255,0.07);transition:box-shadow .1s,opacity .1s;cursor:grab;touch-action:none;}
+.ev.ev-small{padding:3px 6px;}
+.ev.ev-small .ev-actions{position:absolute;top:-2px;right:2px;bottom:auto;left:auto;justify-content:flex-end;background:rgba(0,0,0,0.55);}
+.ev.ev-small.active-ev .ev-actions{top:-2px;bottom:auto;}
+.ev.ev-small .ev-title{padding-right:14px;}
 .ev:active{cursor:grabbing;}
 .ev.dragging{opacity:.3;}
 .ev.done{opacity:.4;filter:saturate(0.25);}
-.ev-title{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:12px;}
+.ev-title{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ev-time{font-family:'DM Mono',monospace;font-size:8px;opacity:.65;margin-top:1px;}
-.ev-actions{position:absolute;top:2px;right:3px;display:flex;gap:2px;opacity:0;transition:opacity .15s;}
+.ev-actions{position:absolute;bottom:2px;left:2px;right:2px;display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .15s,bottom .15s;background:rgba(0,0,0,0.35);border-radius:4px;padding:2px;z-index:20;}
 .ev:hover .ev-actions{opacity:1;}
-.ev-btn{background:rgba(0,0,0,0.5);border:none;color:inherit;width:15px;height:15px;border-radius:3px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ev.active-ev .ev-actions{opacity:1;bottom:14px;}
+.ev-body{padding-bottom:18px;}
+.ev-btn{background:rgba(255,255,255,0.12);border:none;color:inherit;width:16px;height:14px;border-radius:3px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ev-btn:hover{background:rgba(255,255,255,0.25);}
 .ev-btn:hover{background:rgba(0,0,0,0.8);}
 .ev-resize{position:absolute;bottom:0;left:0;right:0;height:6px;cursor:ns-resize;background:rgba(255,255,255,0.1);border-radius:0 0 6px 6px;opacity:0;transition:opacity .15s;}
 .ev:hover .ev-resize{opacity:1;}
@@ -817,8 +824,9 @@ function makeEventEl(ev,dayIdx,dkey,col){
   const fb=feedbacks[ev.id+'_'+dkey];
   const top=toPx(ev.sh,ev.sm);
   const evH=Math.max(20,((ev.eh*60+ev.em)-(ev.sh*60+ev.sm))/60*PH);
+  const isSmall=evH<36;
   const el=document.createElement('div');
-  el.className='ev'+(isDone?' done':'');
+  el.className='ev'+(isDone?' done':'')+(isSmall?' ev-small':'');
   el.dataset.evId=ev.id;
   el.style.cssText='top:'+top+'px;height:'+evH+'px;background:'+ev.color+'1e;border-color:'+ev.color+'44;color:'+ev.color;
 
