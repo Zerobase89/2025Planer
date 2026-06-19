@@ -842,10 +842,10 @@ function makeEventEl(ev,dayIdx,dkey,col){
 
   el.innerHTML=
     '<div class="ev-actions">'+
-      '<button class="ev-btn" onclick="startTimer(''+ev.id+'',''+dkey+'',event)">⏱</button>'+
-      '<button class="ev-btn" onclick="toggleDone(''+ev.id+'',''+dkey+'',event)">'+(isDone?'↩':'✓')+'</button>'+
-      '<button class="ev-btn" onclick="openModal(''+ev.id+'',null,null,null,event)">✎</button>'+
-      '<button class="ev-btn" onclick="deleteEv(''+ev.id+'','+dayIdx+',''+dkey+'',event)">×</button>'+
+      '<button class="ev-btn" onclick="startTimer(\''+ev.id+'\',\''+dkey+'\',event)">⏱</button>'+
+      '<button class="ev-btn" onclick="toggleDone(\''+ev.id+'\',\''+dkey+'\',event)">'+(isDone?'↩':'✓')+'</button>'+
+      '<button class="ev-btn" onclick="openModal(\''+ev.id+'\',null,null,null,event)">✎</button>'+
+      '<button class="ev-btn" onclick="deleteEv(\''+ev.id+'\','+dayIdx+',\''+dkey+'\',event)">×</button>'+
     '</div>'+
     '<div class="ev-title">'+ev.title+'</div>'+
     '<div class="ev-time">'+fmt(ev.sh,ev.sm)+'–'+fmt(ev.eh,ev.em)+'</div>'+
@@ -1358,6 +1358,14 @@ window.setView=setView;
 /* ── INIT ── */
 document.getElementById('tab-cal-btn').className='btn active-tab';
 initFirebaseListener();
+
+setTimeout(function(){
+  if(!document.getElementById('cal').children.length){
+    console.warn('Firebase 응답 없음 - 기본값으로 강제 렌더링');
+    if(!events||!events.length) events=makeDefaults();
+    render();
+  }
+}, 3000);
 </script>
 
 <!-- QUICK ADD PANEL -->
